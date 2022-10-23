@@ -1,0 +1,110 @@
+#define COOLING_FAN_TIME 45000
+
+#define FIRST_GEAR_TIME 30000
+#define SECOND_GEAR_TIME 60000
+#define THIRD_GEAR_TIME 180000
+#define FOURTH_GEAR_TIME 300000
+#define FIVTH_GEAR_TIME 300000 
+
+#define FIRST_GEAR_DURATION 120000
+#define SECOND_GEAR_DURATION 140000
+#define THIRD_GEAR_DURATION 155000
+#define FOURTH_GEAR_DURATION 170000
+#define FIVTH_GEAR_DURATION 180000
+
+#define CONSTANT_HEAT off ///// "on" or "off"
+
+#define START_TIME 60000
+#define END_TIME 45000
+
+#define LIGHT_FOR_SWITCH outPin[0]
+#define ADD_TIME 2000
+#define IDEL_TIME 15000
+#define RUNNING_TIME 155000
+
+int inPin[] = {8, 9, 10, 11, 12};
+int outPin[] = {3, 4, 5, 6, 7};
+long counter = 0;
+long timer = 0;
+int v = 0;
+int on = 1;
+int off = 0;
+void usualrun(long timer);
+
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(inPin[0], INPUT);
+  pinMode(inPin[1], INPUT);
+  pinMode(inPin[2], INPUT);
+  pinMode(inPin[3], INPUT);
+  pinMode(inPin[4], INPUT);
+  pinMode(outPin[0], OUTPUT);
+  pinMode(outPin[1], OUTPUT);
+  pinMode(outPin[2], OUTPUT);
+  pinMode(outPin[3], OUTPUT);
+  pinMode(outPin[4], OUTPUT);
+  digitalWrite(LIGHT_FOR_SWITCH, HIGH);
+  digitalWrite(outPin[1], HIGH); // 5V cooler
+  digitalWrite(outPin[2], LOW); //fan
+  digitalWrite(outPin[3], HIGH); // 12V fan for 5V cooler
+  digitalWrite(outPin[4], LOW); //heater
+}
+
+void loop() {
+  if (digitalRead(inPin[0]) == HIGH){
+    delay (IDEL_TIME);
+    usualrun(120000);
+  }
+  else if ( digitalRead(inPin[4]) == HIGH){
+    if (counter < FIRST_GEAR_TIME){
+        usualrun(FIRST_GEAR_DURATION);
+        counter = 0;
+    }
+    else if (counter < SECOND_GEAR_TIME){
+        usualrun(SECOND_GEAR_DURATION);
+        counter = 0;
+    }
+    else if (counter < THIRD_GEAR_TIME){
+        usualrun(THIRD_GEAR_DURATION);
+        counter = 0;
+    }
+    else if (counter < FOURTH_GEAR_TIME){
+        usualrun(FOURTH_GEAR_DURATION);
+        counter = 0;
+    }
+    else if (counter > FIVTH_GEAR_TIME){
+        usualrun(FIVTH_GEAR_DURATION);
+        counter = 0;
+    }
+  }  
+  delay(100);
+  counter += 100;
+  while( (CONSTANT_HEAT == 1)   &&  counter > START_TIME){
+    digitalWrite(outPin[4], HIGH);    //    secretly on ----------------------------
+    if ( digitalRead(inPin[4]) == HIGH){
+    usualrun(timer);
+    counter = 0;
+    break;
+    }  
+    delay(100);
+    counter += 100;
+    if (counter > ( END_TIME + START_TIME )){
+      digitalWrite(outPin[4], LOW);
+      counter = 0;
+      break;
+   }
+ }
+}
+
+
+void usualrun(long timer){
+  long t = RUNNING_TIME;
+    digitalWrite(LIGHT_FOR_SWITCH, LOW);
+    digitalWrite(outPin[4], HIGH);
+    delay(timer);
+    digitalWrite(outPin[4], LOW);
+    digitalWrite(outPin[2], HIGH);
+    delay(COOLING_FAN_TIME);
+    digitalWrite(outPin[2], LOW);
+    digitalWrite(LIGHT_FOR_SWITCH, HIGH);
+}
